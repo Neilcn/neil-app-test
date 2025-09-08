@@ -1,0 +1,65 @@
+<!-- filepath: sections/judgeme-reviews.liquid -->
+<div id="judgeme-reviews">
+  <h2>{{ section.settings.heading }}</h2>
+  <div id="judgeme-reviews-list">Loading reviews...</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/apps/judgeme-reviews')
+    .then(res => res.json())
+    .then(data => {
+      const reviews = data.reviews || [];
+      const container = document.getElementById('judgeme-reviews-list');
+      if (reviews.length === 0) {
+        container.innerHTML = '<p>No reviews found.</p>';
+        return;
+      }
+      // Limit number of reviews displayed
+      const limit = {{ section.settings.limit | default: 5 }};
+      container.innerHTML = reviews.slice(0, limit).map(review => `
+        <div class="judgeme-review">
+          <div>
+            <strong>${review.reviewer.name || 'Anonymous'}</strong>
+            <span> - Rating: ${review.rating}</span>
+          </div>
+          <div>${review.body}</div>
+        </div>
+        <hr>
+      `).join('');
+    })
+    .catch(() => {
+      document.getElementById('judgeme-reviews-list').innerHTML = '<p>Failed to load reviews.</p>';
+    });
+});
+</script>
+
+<style>
+#judgeme-reviews { margin: 2em 0; }
+.judgeme-review { margin-bottom: 1em; }
+</style>
+
+{% schema %}
+{
+  "name": "Judge.me Reviews",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Customer Reviews"
+    },
+    {
+      "type": "number",
+      "id": "limit",
+      "label": "Number of reviews to show",
+      "default": 5
+    }
+  ],
+  "presets": [
+    {
+      "name": "Judge.me Reviews"
+    }
+  ]
+}
+{% endschema %}

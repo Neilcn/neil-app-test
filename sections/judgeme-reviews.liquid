@@ -1,0 +1,155 @@
+
+<div class="page-width">
+  <h2 class="judgeme-reviews-heading" style="text-align:center;">{{ section.settings.heading }}</h2>
+  <div id="judgeme-reviews-list" class="judgeme-reviews-grid">Loading reviews...</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/apps/judgeme-reviews')
+    .then(res => res.json())
+    .then(async data => {
+      const reviews = data.reviews || [];
+      const container = document.getElementById('judgeme-reviews-list');
+      if (reviews.length === 0) {
+        container.innerHTML = '<p style="text-align:center;">No reviews found.</p>';
+        return;
+      }
+      const limit = {{ section.settings.limit | default: 8 }};
+      // Fetch product images in parallel
+      const reviewsWithImages = await Promise.all(
+        reviews.slice(0, limit).map(async review => {
+          let imageUrl = '';
+          if (review.product_handle) {
+            try {
+              const productRes = await fetch(`/products/${review.product_handle}.js`);
+              if (productRes.ok) {
+                const productData = await productRes.json();
+                imageUrl = productData.featured_image || '';
+                // Debug: log the handle and image
+                console.log('Handle:', review.product_handle, 'Image:', imageUrl);
+              } else {
+                console.warn('Product not found for handle:', review.product_handle);
+              }
+            } catch (e) {
+              console.error('Error fetching product:', review.product_handle, e);
+            }
+          } else {
+            console.warn('No product_handle in review:', review);
+          }
+          return { ...review, imageUrl };
+        })
+      );
+      container.innerHTML = reviewsWithImages.map(review => {
+        const stars = Array.from({length: 5}, (_, i) =>
+          `<span class="star" style="color:${i < review.rating ? '#FFD700' : '#DDD'};">&#9733;</span>`
+        ).join('');
+        const imageTag = review.imageUrl
+          ? `<img src="${review.imageUrl}" alt="Product image" class="judgeme-product-image" loading="lazy">`
+          : '<div style="height:80px;"></div>';
+        const reviewer = review.reviewer.name;
+        return `
+          <div class="judgeme-review-card">
+            ${imageTag}
+            <div class="judgeme-review-content">
+              <div class="judgeme-review-rating">${stars}</div>
+              <div class="judgeme-review-body">${review.body}</div>
+              <div class="judgeme-reviewer">— ${reviewer}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    })
+    .catch((e) => {
+      document.getElementById('judgeme-reviews-list').innerHTML = '<p style="text-align:center;">Failed to load reviews.</p>';
+      console.error('Failed to load reviews:', e);
+    });
+});
+</script>
+
+<style>
+.page-width {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2em 1em;
+}
+.judgeme-reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2em;
+  margin-top: 2em;
+}
+.judgeme-review-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 1.5em 1em 1em 1em;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+.judgeme-product-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 1em;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+.judgeme-review-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.judgeme-review-rating {
+  margin-bottom: 0.5em;
+  font-size: 1.2em;
+}
+.judgeme-review-body {
+  margin-bottom: 1em;
+  font-size: 1em;
+  color: #333;
+}
+.judgeme-reviewer {
+  font-size: 0.95em;
+  color: #888;
+}
+@media (max-width: 900px) {
+  .judgeme-reviews-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .judgeme-reviews-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Judge.me Reviews",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Customer Reviews"
+    },
+    {
+      "type": "number",
+      "id": "limit",
+      "label": "Number of reviews to show",
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "Judge.me Reviews"
+    }
+  ]
+}
+{% endschema %}
