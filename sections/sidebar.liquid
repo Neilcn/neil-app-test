@@ -1,0 +1,14 @@
+<side-cart>
+<strong>My Cart</strong>
+  <div class="cart-items">
+    <!-- Cart items will be dynamically inserted here -->
+  </div>
+  <div class="cart-total">
+    Total: <span class="total-amount">{{ cart.total_price | money }}</span>
+  </div>
+  <button class="checkout-button" onclick="window.location.href='/checkout'">Checkout</button>
+
+</side-cart>
+
+
+<script src="{{ 'side-cart.js' | asset_url }}" defer></script>

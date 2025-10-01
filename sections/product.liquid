@@ -1,0 +1,56 @@
+<script src="{{ 'product.js' | asset_url }}" defer></script>
+
+
+<product-page>
+<h1>{{ product.title }}</h1>
+
+<div class="product-price">FROM: {{ product.price | money }}</div>
+
+<img
+  class="product-image"
+  src="{{ product.selected_or_first_available_variant.featured_image | image_url: width:400 }}"
+  alt="{{ product.selected_or_first_available_variant.alt | escape }}"
+  width="400"
+  height=""
+>
+{% if product.images.size > 1 %}
+  <div class="product-image-grid">
+    {% for image in product.images %}
+      <img class="" src="{{ image | image_url: width:100 }}" alt="{{ image.alt | escape }}" width="100" height="">
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% form 'product', product %}
+  {% comment %} <input type="hidden" name="id" value="{{ product.variants.first.id }}"> {% endcomment %}
+  {% if product.variants.size > 1 %}
+    <label for="ProductSelect">Options</label>
+
+    {% for option in product.options_with_values %}
+      <select class="product-option product-option-{{ forloop.index }}">
+        {% for value in option.values %}
+          <option value="{{ value.name }}" {% if value.selected %}selected{% endif %}>{{ value.name }}</option>
+        {% endfor %}
+      </select>
+    {% endfor %}
+    
+      <select name="id" id="ProductSelect-{{ variant.id }}" class="product-variant-select">
+        {% for variant in product.variants %}
+        <option value="{{ variant.id }}" {% if variant.selected %}selected{% endif %}>{{ variant.title }} - {{ variant.price | money }}</option>
+        {% endfor %}
+      </select>
+    
+  {% endif %}
+
+
+  {% if product.selected_or_first_available_variant.available %}
+    <button type="submit">Add to Cart</button>
+  {% else %}
+    <button type="submit" disabled>Sold Out</button>
+  {% endif %}
+{% endform %}
+
+<script id="product-variants-json" type="application/json">
+  {{ product.variants | json }}
+</script>
+</product-page>

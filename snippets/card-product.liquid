@@ -40,6 +40,13 @@
       assign ratio = 1
     endif
   -%}
+
+  {% style %}
+  .product-card-button {
+    position: relative;
+    z-index: 2;
+  }
+  {% endstyle %}
   <div class="card-wrapper product-card-wrapper underline-links-hover">
     <div
       class="
@@ -287,7 +294,23 @@
               {% endif %}
             {%- endif -%}
           </div>
+
+          {%- form 'product', card_product, class: 'product-card-button' -%}
+            {%- if card_product.has_only_default_variant -%}
+              <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
+            {% else %}
+              <select name="id">
+                {%- for variant in card_product.variants -%}
+                  <option value="{{ variant.id }}">{{ variant.title }}</option>
+                {%- endfor -%}
+              </select>
+            {%- endif -%}
+
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit">Add to cart</button>
+          {%- endform -%}
         </div>
+
         {% assign product_form_id = 'quick-add-' | append: section_id | append: card_product.id %}
         {% if quick_add == 'standard' %}
           <div class="quick-add no-js-hidden">
