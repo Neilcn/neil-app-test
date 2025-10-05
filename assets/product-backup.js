@@ -50,60 +50,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         productForm.addEventListener('submit', function (event) {
-            // event.preventDefault();
+            event.preventDefault();
             let formData = new FormData(productForm);
 
             // Check if bundle card is selected and add bundle variant to cart
             const bundleCard = document.querySelector('.bundle-product');
             const bundleId = new Date().getTime(); // Unique ID for this bundle addition
             console.log('Bundle ID:', bundleId);
-
-            let cartItems = { item: [] };
-
+            
+            const items = [];
+            
             if (bundleCard && bundleCard.hasAttribute('selected')) {
                 const bundleVariantId = bundleCard.getAttribute('data-bundle-variant-id');
                 if (bundleVariantId) {
-                    cartItems = {
-                        items: [
-                            {
-                                id: formData.get('id'),
-                                quantity: 1,
-                                properties: { bundleId }
-                            },
-                            {
-                                id: bundleVariantId,
-                                quantity: 1,
-                                properties: { bundleId }
-                            }
-                        ]
-                    }
+                    formData.append('items[][id]', bundleVariantId);
+                    formData.append('items[][quantity]', '1');
+
+                    console.log('Bundle variant added to cart:', bundleVariantId);
                 }
-            } else {
-                cartItems = {
-                    items: [
-                        {
-                            id: formData.get('id'),
-                            quantity: formData.get('quantity')
-                        },
-                    ]
-                };
             }
 
-
+            // Convert FormData to object for better logging
+            const formDataObject = {};
+            for (let [key, value] of formData.entries()) {
+                formDataObject[key] = value;
+            }
+            console.log('Form Data:', formDataObject);
 
             fetch(window.Shopify.routes.root + 'cart/add.js', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cartItems)
-                // body: JSON.stringify({
-                //     items: [
-                //         {
-                //             id: formData.get('id'),
-                //             quantity: formData.get('quantity'),
-                //             properties: { bundleId }
-                //         },
-                //     ]
-                // })
+                body: formData
             })
                 .then(response => {
                     return response.json();
@@ -116,7 +92,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
 
-    };
+
+
+    }
+
+
 });
 
 

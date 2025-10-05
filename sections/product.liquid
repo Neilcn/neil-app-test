@@ -93,45 +93,24 @@
   {% endform %}
 
   {% if product.metafields.custom.bundle_product %}
-    {% assign bundle_product_gid = product.metafields.custom.bundle_product.value %}
-    {% comment %} Extract product ID from GID string {% endcomment %}
-    {% assign gid_parts = bundle_product_gid | split: '/' %}
-    {% assign bundle_product_id = gid_parts[4] %}
-    
-    {% comment %} Find the product by iterating through all products with type conversion {% endcomment %}
-    {% assign bundle_product = null %}
-    {% assign bundle_product_id_string = bundle_product_id | append: '' %}
-    
 
-      {% for product_item in shop.products %}
-        {% assign current_id_string = product_item.id | append: '' %}
-        {% if current_id_string == bundle_product_id_string %}
-          {% assign bundle_product = product_item %}
-          {% break %}
-        {% endif %}
-      {% endfor %}
-
-    
-
-    <bundle-card>
-      <div
-        class="bundle-product"
-        data-bundle-variant-id="{{ bundle_product.selected_or_first_available_variant.id }}"
-      >
-        <h2>This is a bundle product</h2>
-        <div class="bundle-product-card">
-          <img
-            src="{{ bundle_product.featured_image | image_url: width: 50 }}"
-            alt="{{ bundle_product.title | default: 'Bundle Product' | escape }}"
-            width="50"
-            height="50"
-          >
-          <p>
-            <strong class="bundle-product-value-title">{{ bundle_product.title }}</strong>
-          </p>
+    {% if bundle_product %}
+      <bundle-card>
+        <div class="bundle-product" data-bundle-variant-id="{{ bundle_product.selected_or_first_available_variant.id }}">
+          <h2>This is a bundle product</h2>
+          <div class="bundle-product-card">
+            <img
+              src="{{ bundle_product.featured_image | image_url: width: 50 }}"
+              alt="{{ bundle_product.title | default: 'Bundle Product' | escape }}"
+              width="50"
+              height="50"
+            >
+            <p><strong class="bundle-product-value-title">{{ bundle_product.title }}</strong></p>
+          </div>
         </div>
-      </div>
-    </bundle-card>
+      </bundle-card>
+
+    {% endif %}
   {% endif %}
 
   <script id="product-variants-json" type="application/json">
