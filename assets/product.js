@@ -68,12 +68,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             {
                                 id: formData.get('id'),
                                 quantity: 1,
-                                properties: { _bundleId = bundleId }
+                                properties: { _bundleId : bundleId }
                             },
                             {
                                 id: bundleVariantId,
                                 quantity: 1,
-                                properties: { _bundleId = bundleId }
+                                properties: { _bundleId : bundleId }
                             }
                         ]
                     }
