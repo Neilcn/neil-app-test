@@ -53,7 +53,23 @@ document.addEventListener('DOMContentLoaded', function () {
             event.preventDefault();
             let formData = new FormData(productForm);
 
-            console.log('Form Data:', formData);
+            // Check if bundle card is selected and add bundle variant to cart
+            const bundleCard = document.querySelector('.bundle-product');
+            if (bundleCard && bundleCard.hasAttribute('selected')) {
+                const bundleVariantId = bundleCard.getAttribute('data-bundle-variant-id');
+                if (bundleVariantId) {
+                    formData.append('items[][id]', bundleVariantId);
+                    formData.append('items[][quantity]', '1');
+                    console.log('Bundle variant added to cart:', bundleVariantId);
+                }
+            }
+
+            // Convert FormData to object for better logging
+            const formDataObject = {};
+            for (let [key, value] of formData.entries()) {
+                formDataObject[key] = value;
+            }
+            console.log('Form Data:', formDataObject);
 
             fetch(window.Shopify.routes.root + 'cart/add.js', {
                 method: 'POST',
@@ -64,34 +80,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
                 .then(json_response => {
                     console.log('Add to Cart Response:', json_response);
-                if (json_response.status != 'bad_request' ){
-                    document.querySelector('side-cart').getCart();
-                    
-
-                }else{alert('Error:' + json_response.message);
-
-                }})
+                })
                 .catch((error) => {
                     console.error('Error:', error);
                 });
         });
 
-        // fetchVariant();
+
 
     }
+
+
 });
 
-function fetchVariant() {
 
-    var urlParams = new URLSearchParams(window.location.search);
-    var variantId = urlParams.get('variant');
-    console.log('Variant ID from URL:', variantId);
-    if (variantId) {
-        var select = document.getElementById('ProductSelect');
-        if (select) {
-            select.value = variantId;
-        }
+class BundleCard extends HTMLElement {
+    constructor() {
+        super();
+        this.bundleCard = this.querySelector('.bundle-product');
+        this.addEventListener('click', this.toggleSelection.bind(this));
+
     }
 
+    toggleSelection() {
+        if (this.bundleCard.hasAttribute('selected')) {
+            this.bundleCard.removeAttribute('selected');
+            this.bundleCard.style.border = '';
+        } else {
+            this.bundleCard.setAttribute('selected', '');
+            this.bundleCard.style.border = '2px solid blue';
+        }
+    }
 }
 
+customElements.define('bundle-card', BundleCard);
