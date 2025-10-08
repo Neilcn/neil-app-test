@@ -1,117 +1,200 @@
+{{ 'component-slider.css' | asset_url | stylesheet_tag }}
+{{ 'product.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'product.js' | asset_url }}" defer></script>
 
-{% stylesheet %}
-  .bundle-product {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    border: solid 1px black;
-    border-radius: 5px;
-    padding: 10px;
-  }
-  .bundle-product-card {
-    display: flex;
-    align-items: flex-start;
-  }
-  .bundle-product img {
-    margin-right: 10px;
-  }
-  .bundle-product p {
-    margin: 0;
-  }
-{% endstylesheet %}
 
-<product-page>
-  <h1>{{ product.title }}</h1>
-
-  <div class="product-price">FROM: {{ product.price | money }}</div>
-
-  <img
-    class="product-image"
-    src="{{ product.selected_or_first_available_variant.featured_image | image_url: width:400 }}"
-    alt="{{ product.selected_or_first_available_variant.alt | escape }}"
-    width="400"
-    height=""
-  >
-  {% if product.images.size > 1 %}
-    <div class="product-image-grid">
-      {% for image in product.images %}
-        <img class="" src="{{ image | image_url: width:100 }}" alt="{{ image.alt | escape }}" width="100" height="">
-      {% endfor %}
-      {% if product.metafields.custom.bundle_product %}
-        {% assign bundle_product_gid = product.metafields.custom.bundle_product %}
-        {% assign bundle_product = bundle_product_gid.value %}
+<product-page class="page-width">
+  <div class="product-images">
+    <slider-component class="slider-mobile-gutter slider-component-desktop">
+      <ul
+        id="Slider-{{ section.id }}"
+        data-id="{{ section.id }}"
+        class="grid product-grid contains-card contains-card--product grid--1-col-desktop grid--1-col-tablet-down slider slider--desktop slider--tablet grid--peek"
+        role="list"
+        aria-label="{{ 'general.slider.name' | t }}"
+      >
+        <li
+          id="Slide-{{ section.id }}-1"
+          class="grid__item slider__slide"
+        >
           <img
-            src="{{ bundle_product.featured_image | image_url: width: 100 }}"
-            alt="{{ bundle_product.title | default: 'Bundle Product' | escape }}"
-            width="100"
-            height="100"
+            class=""
+            {% unless product.selected_or_first_available_variant.image == blank %}
+              src="{{ product.selected_or_first_available_variant.image | image_url: width:400 }}"
+            {% else %}
+              src="{{ product.featured_image | image_url: width:400 }}"
+            {% endunless %}
+            alt="{{ product.selected_or_first_available_variant.alt | escape }}"
+            width="400"
+            height=""
           >
-        {% endif %}
-    </div>
-  {% endif %}
+        </li>
 
-  {% form 'product', product %}
-    {% comment %} <input type="hidden" name="id" value="{{ product.variants.first.id }}"> {% endcomment %}
-    {% if product.variants.size > 1 %}
-      <label for="ProductSelect">Options</label>
-
-      {% for option in product.options_with_values %}
-        <select class="product-option product-option-{{ forloop.index }}">
-          {% for value in option.values %}
-            <option
-              value="{{ value.name }}"
-              {% if value.selected %}
-                selected
-              {% endif %}
+        {% for image in product.images %}
+          {% unless image == product.selected_or_first_available_variant.image %}
+            <li
+              id="Slide-{{ section.id }}-{{ forloop.index | plus: 1 }}"
+              class="grid__item slider__slide"
             >
-              {{ value.name }}
-            </option>
-          {% endfor %}
-        </select>
-      {% endfor %}
-
-      <select name="id" id="ProductSelect" class="product-variant-select">
-        {% for variant in product.variants %}
-          <option
-            value="{{ variant.id }}"
-            {% if variant.selected %}
-              selected
-            {% endif %}
-          >
-            {{ variant.title }} - {{ variant.price | money }}
-          </option>
+              <img
+                class=""
+                src="{{ image | image_url: width:400 }}"
+                alt="{{ image.alt | escape }}"
+                width="400"
+                height=""
+              >
+            </li>
+          {% endunless %}
         {% endfor %}
-      </select>
-    {% endif %}
 
-    {% if product.selected_or_first_available_variant.available %}
-      <button type="submit">Add to Cart</button>
-    {% else %}
-      <button type="submit" disabled>Sold Out</button>
-    {% endif %}
-  {% endform %}
-
-  {% if product.metafields.custom.bundle_product %}
-
-    {% if bundle_product %}
-      <bundle-card>
-        <div class="bundle-product" data-bundle-variant-id="{{ bundle_product.selected_or_first_available_variant.id }}">
-          <h2>This is a bundle product</h2>
-          <div class="bundle-product-card">
+        {% if product.metafields.custom.bundle_product %}
+          {% assign bundle_product_gid = product.metafields.custom.bundle_product %}
+          {% assign bundle_product = bundle_product_gid.value %}
+          <li
+            id="Slide-{{ section.id }}-{{ product.images.size | plus: 2 }}"
+            class="grid__item slider__slide"
+          >
             <img
-              src="{{ bundle_product.featured_image | image_url: width: 50 }}"
+              src="{{ bundle_product.featured_image | image_url: width: 400 }}"
               alt="{{ bundle_product.title | default: 'Bundle Product' | escape }}"
-              width="50"
-              height="50"
+              width="400"
+              height=""
             >
-            <p><strong class="bundle-product-value-title">{{ bundle_product.title }}</strong></p>
-          </div>
-        </div>
-      </bundle-card>
+          </li>
+        {% endif %}
+      </ul>
 
-    {% endif %}
-  {% endif %}
+      <div class="slider-buttons">
+        <button
+          type="button"
+          class="slider-button slider-button--prev"
+          name="previous"
+          aria-label="{{ 'general.slider.previous_slide' | t }}"
+          aria-controls="Slider-{{ section.id }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-caret.svg' | inline_asset_content -}}
+          </span>
+        </button>
+        <div class="slider-counter caption">
+          <span class="slider-counter--current">1</span>
+          <span aria-hidden="true"> / </span>
+          <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
+          <span class="slider-counter--total">{{ products_to_display }}</span>
+        </div>
+        <button
+          type="button"
+          class="slider-button slider-button--next"
+          name="next"
+          aria-label="{{ 'general.slider.next_slide' | t }}"
+          aria-controls="Slider-{{ section.id }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-caret.svg' | inline_asset_content -}}
+          </span>
+        </button>
+      </div>
+    </slider-component>
+  </div>
+  <div class="product-details">
+    <h1>{{ product.title }}</h1>
+
+    <div class="product-price">{{ product.selected_or_first_available_variant.price | money }}</div>
+
+    {% form 'product', product %}
+      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+      {% if product.variants.size > 1 %}
+        <variant-picker data-section-id="{{ section.id }}">
+          {% for option in product.options_with_values %}
+            <fieldset class="product-form__option">
+              <legend class="product-form__option-label">{{ option.name }}</legend>
+              {% for value in option.values %}
+                {% if option.name == 'Color' %}
+                  <input
+                    type="radio"
+                    id="option-{{ option.name }}-{{ value.name }}"
+                    name="options[{{ option.name }}]"
+                    value="{{ value.variant.id }}"
+                    {% if value.selected %}
+                      checked
+                    {% else %}
+                      {% assign selected_value = product.first_available_variant.options[forloop.index] %}
+                      {% if value.name == selected_value %}
+                        checked
+                      {% endif %}
+                    {% endif %}
+                  >
+                  <label class="product-form__option-label" for="option-{{ option.name }}-{{ value.name }}">
+                    <span
+                      class="product-form__option-text {% unless value.variant.available %}out-of-stock{% endunless %} {% if option.name == 'Color' %}color-option{% endif %}"
+                      style="background-color: {{ value.name | downcase }};"
+                    ></span>
+                  </label>
+                {% else %}
+                  <input
+                    type="radio"
+                    id="option-{{ option.name }}-{{ value.name }}"
+                    name="options[{{ option.name }}]"
+                    value="{{ value.variant.id }}"
+                    {% if value.selected %}
+                      checked
+                    {% else %}
+                      {% assign selected_value = product.first_available_variant.options[forloop.index] %}
+                      {% if value.name == selected_value %}
+                        checked
+                      {% endif %}
+                    {% endif %}
+                  >
+                  <label class="product-form__option-label" for="option-{{ option.name }}-{{ value.name }}">
+                    <span class="product-form__option-text {% unless value.variant.available %}out-of-stock{% endunless %} {% if option.name == 'Color' %}color-option{% endif %}">
+                      {{- value.name -}}
+                    </span>
+                  </label>
+                {% endif %}
+              {% endfor %}
+            </fieldset>
+          {% endfor %}
+        </variant-picker>
+
+      {% endif %}
+
+      {% if product.metafields.custom.bundle_product %}
+        {% if bundle_product %}
+          <h2 class="bundle-card-text">Make bundle& save</h2>
+          <bundle-card>
+            <div
+              class="bundle-product"
+              data-bundle-variant-id="{{ bundle_product.selected_or_first_available_variant.id }}"
+              data-bundle-discount="{{ settings.bundle_discount }}"
+            >
+              <div class="bundle-product-card">
+                <img
+                  src="{{ bundle_product.featured_image | image_url: width: 100 }}"
+                  alt="{{ bundle_product.title | default: 'Bundle Product' | escape }}"
+                  width="100"
+                  height="100"
+                >
+                <div class="bundle-product-info">
+                  <p>
+                    <span class="bundle-product-value-title">{{ bundle_product.title }}</span>
+                  </p>
+                  <p>
+                    <span class="bundle-product-value-price">{{ bundle_product.price | money }}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </bundle-card>
+        {% endif %}
+      {% endif %}
+
+      {% if product.selected_or_first_available_variant.available %}
+        <button type="submit">Add to Cart</button>
+      {% else %}
+        <button type="submit" disabled>Sold Out</button>
+      {% endif %}
+    {% endform %}
+  </div>
 
   <script id="product-variants-json" type="application/json">
     {{ product.variants | json }}
