@@ -9,6 +9,16 @@
  */
 {
   "sections": {
+    "custom_liquid_T6xhaW": {
+      "type": "custom-liquid",
+      "name": "t:sections.custom-liquid.presets.name",
+      "settings": {
+        "custom_liquid": "<button class=\"open-chat-window\">open chat</button>",
+        "color_scheme": "",
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    },
     "image_banner": {
       "type": "image-banner",
       "blocks": {
@@ -140,6 +150,7 @@
     }
   },
   "order": [
+    "custom_liquid_T6xhaW",
     "image_banner",
     "judgeme_reviews_kfJECD",
     "featured_collection",
